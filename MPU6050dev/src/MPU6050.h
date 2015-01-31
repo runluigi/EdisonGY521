@@ -604,7 +604,7 @@ typedef union accel_t_gyro_union{
 			int16_t x_gyro;
 			int16_t y_gyro;
 			int16_t z_gyro;
-		} value;
+	} value;
 	};
 
 class MPU6050{
@@ -662,15 +662,16 @@ public:
     }
 
 	void init(){
-		uint8_t c;
-		     //printf("Initializing MPU-6050");
+			  uint8_t c;
+		     printf("Initializing MPU-6050");
 		      MPU6050_read (MPU6050_WHO_AM_I, &c, 1);
-		      //printf("WHO_AM_I : 0x%x \n",c);
+		      printf("WHO_AM_I : 0x%x \n",c);
 		      MPU6050_write_reg (MPU6050_PWR_MGMT_1, 0x00);
 		      MPU6050_read (MPU6050_PWR_MGMT_1, &c, 1);
-		      //printf("PWR_MGMT_1 : 0x%x  Initialized \n",c);
+		      sleep(1);
 		      status = 1;
 	};
+
 	void readMeasurements(){
 		      MPU6050_read (MPU6050_ACCEL_XOUT_H, (uint8_t *) &accel_t_gyro, sizeof(accel_t_gyro));
 		      uint8_t swap;
@@ -684,64 +685,62 @@ public:
 		      SWAP (accel_t_gyro.reg.y_gyro_h, accel_t_gyro.reg.y_gyro_l);
 		      SWAP (accel_t_gyro.reg.z_gyro_h, accel_t_gyro.reg.z_gyro_l);
 
-		      //printf("gyro x,y,z: %i, %i, %i \n",accel_t_gyro.value.x_gyro/131,
-		    	//	  accel_t_gyro.value.y_gyro/131,
-		    	//	  accel_t_gyro.value.z_gyro/131);
+		      //printf("Gyro Values:--X:%i Y:%i Z:%i ----- \n",accel_t_gyro.value.x_gyro,accel_t_gyro.value.y_gyro,accel_t_gyro.value.z_gyro);
+		      //printf(" Accel Values: \n--X:%i Y:%i Z:%i \n",accel_t_gyro.value.x_accel,accel_t_gyro.value.y_accel,accel_t_gyro.value.z_accel);
 		      return ;
 	};
-	int getX(){
-		return accel_t_gyro.value.x_gyro/131;
-	}
-
-	void readAccelerationConfiguration(){
-		uint8_t byte;
-		MPU6050_read (MPU6050_ACCEL_CONFIG, (uint8_t *) &byte, 1);
-		printf("Accel_Config: %i\n",byte);
-
-	}
 	uint8_t readRegistry(int reg){
-		uint8_t byte;
-		MPU6050_read (reg, (uint8_t *) &byte, 1);
-		return byte;
+			uint8_t byte;
+			MPU6050_read (reg, (uint8_t *) &byte, 1);
+			return byte;
+		};
+
+	uint8_t readAccelerationConfiguration(){
+		return readRegistry(MPU6050_ACCEL_CONFIG);
+	};
+	void startAccelerationSelfTest(){
+		MPU6050_write_reg (MPU6050_ACCEL_CONFIG, 224);
 	};
 
-	void calibrate(){
-		int num_readings = 1000;
-		float x_accel = 0;
-		float y_accel = 0;
-		float z_accel = 0;
-		float x_gyro = 0;
-		float y_gyro = 0;
-		float z_gyro = 0;
-		readMeasurements();//Discard the first one;
-		for (int i = 0; i < num_readings; i++) {
-			readMeasurements();
-			x_accel += accel_t_gyro.value.x_accel;
-			y_accel += accel_t_gyro.value.y_accel;
-			z_accel += accel_t_gyro.value.z_accel;
-			x_gyro += accel_t_gyro.value.x_gyro;
-			y_gyro += accel_t_gyro.value.y_gyro;
-			z_gyro += accel_t_gyro.value.z_gyro;
-			usleep(1000);
-		}
-		x_accel /= num_readings;
-		y_accel /= num_readings;
-		z_accel /= num_readings;
-		x_gyro /= num_readings;
-		y_gyro /= num_readings;
-		z_gyro /= num_readings;
+	uint8_t readGyroConfig(){
+		return readRegistry(MPU6050_GYRO_CONFIG);
+	};
 
-		base_x_accel = x_accel;
-		base_y_accel = y_accel;
-		base_z_accel = z_accel;
-		base_x_gyro = x_gyro/131;
-		base_y_gyro = y_gyro/131;
-		base_z_gyro = z_gyro/131;
+	void startGyroSelfTest(){
+		MPU6050_write_reg (MPU6050_GYRO_CONFIG, 224);
+	};
 
+	uint8_t readInterruptEnable(){
+		return readRegistry(MPU6050_INT_ENABLE);
+	};
+	void setInterruptEnable(uint8_t status){
+		MPU6050_write_reg (MPU6050_INT_ENABLE, status);
+	};
 
-		//printf("calibrate gyro: %f, %f, %f",base_x_gyro,base_y_gyro,base_z_gyro);
-		//set_last_read_angle_data(clock(), 0, 0, 0, 0, 0, 0);
-		return ;
+	uint8_t readInterruptStatus(){
+		return readRegistry(MPU6050_INT_STATUS);
+	};
+
+	uint8_t readPowerManagement1(){
+			return readRegistry(MPU6050_PWR_MGMT_1);
+	};
+	void setPowerManagement1(uint8_t status){
+			MPU6050_write_reg (MPU6050_PWR_MGMT_1, status);
+	};
+
+	uint8_t readPowerManagement2(){
+				return readRegistry(MPU6050_PWR_MGMT_2);
+	};
+
+	void setPowerManagement2(uint8_t status){
+				MPU6050_write_reg (MPU6050_PWR_MGMT_2, status);
+	};
+	int16_t getXGyro() const {
+		return accel_t_gyro.value.x_gyro;
+	}
+
+	int16_t getYGyro() const {
+		return accel_t_gyro.value.y_gyro;
 	}
 	void processGyroValuestoDegrees(){
 

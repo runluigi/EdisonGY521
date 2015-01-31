@@ -31,24 +31,21 @@
     		pFile = fopen ("MPU6050.txt","w");
     		if (pFile!=NULL){
     			printf("File is open.");
-    			int temp_gyrox = 0, temp_gyroy = 0;
+    			double temp_gyrox = 0,temp_gyroy = 0;
 
     		for(int i = 0; i<500;){
     			usleep(100000);
     			if(gyro.readInterruptStatus()>=1){
     				gyro.readMeasurements();
-    				int newgyroX = gyro.getXGyro();
+    				double newgyroX = gyro.getXGyro();
     				newgyroX = newgyroX/131;
 
     				if (temp_gyrox != newgyroX){
-    					printf("Different values: %f,%f\n",temp_gyrox, newgyroX);
+    					//printf("Different values: %f,%f\n",temp_gyrox, newgyroX);
     				}
 
-    				temp_gyrox =  gyro.getXGyro();
-    				temp_gyroy =  gyro.getYGyro();
-
-    				temp_gyrox =  temp_gyrox/131;
-    				temp_gyroy =  temp_gyroy/131;
+    				temp_gyrox = (double) gyro.getXGyro()/131;
+    				temp_gyroy = (double) gyro.getYGyro()/131;
 
     				fprintf(pFile,"X,%f,Y,%f\n",temp_gyrox,temp_gyroy);
     				if(gyro.getXGyro() == 0 && gyro.getYGyro() == 0){

@@ -19,9 +19,10 @@ int main(){
 
 	cout<<"GYRO CONFIG:"<<(int)gyro.readGyroConfig()<< std::endl;
 	gyro.calibrate();
-	cout<<"Calibration values:"<<gyro.getCalibrations()<<std::endl;
-	gyro.refresh();
-	cout<<"Current reading:"<<gyro.getReadings()<<std::endl;
+
+	//cout<<"Calibration values:"<<gyro.getCalibrations()<<std::endl;
+	//gyro.refresh();
+	//cout<<"Current reading:"<<gyro.getReadings()<<std::endl;
 
 	for(int i = 0;i<500;i++){//polling values every 10ms
 		gyro.refresh();

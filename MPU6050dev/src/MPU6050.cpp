@@ -1,7 +1,5 @@
 #include "MPU6050.h"
 #include <mraa.hpp>
-//#include "mraa.hpp"
-//#include thread
 
 MPU6050 :: MPU6050(){
 	this->time_measure = 0;
@@ -12,7 +10,7 @@ MPU6050 :: MPU6050(){
 	clearMPU6050Reading(calibrations);
 	samplesize = 200;
 	clearbuffer();
-	//i2c = new mraa::I2c(6);
+
 }
 
 void MPU6050 :: clearbuffer(){
@@ -22,7 +20,7 @@ void MPU6050 :: clearbuffer(){
 void MPU6050 :: MPU6050_read(int start, char buff[], int size){
 		mraa::I2c* i2c;
 		i2c = new mraa::I2c(6);
-	 	//mraa_result_t result = i2c->frequency(250);
+	 	//mraa_result_t result = i2c->frequency(250); //for future use
 	 	//if(result == MRAA_ERROR_FEATURE_NOT_SUPPORTED)
 	 	//std::cout<<"feature not supported by MRAA";
 		i2c->address(MPU6050_I2C_ADDRESS);
@@ -40,7 +38,6 @@ int MPU6050 :: MPU6050_write_reg(int reg, int data){
 		i2c->address(MPU6050_I2C_ADDRESS);
 		i2c->writeReg(reg,data);
 		i2c->~I2c();
-		//delete[] i2c;
 
 		return 0;
 }
@@ -66,23 +63,17 @@ int MPU6050 :: initialize(){
 		return status;
 }
 void MPU6050 :: calibrate(){
-	std::cout<<"Calibrating initial values."<<std::endl;
-
 	clearMPU6050Reading(calibrations);
-
 	for (int i = 0;i<this->samplesize;i++){
 		this->refresh();
-
 		calibrations.x_accel += readings.x_accel;
 		calibrations.y_accel += readings.y_accel;
 		calibrations.z_accel += readings.z_accel;
-
 		calibrations.temperature +=readings.temperature;
-
 		calibrations.x_gyro += readings.x_gyro;
 		calibrations.y_gyro += readings.y_gyro;
 		calibrations.z_gyro += readings.z_gyro;
-		usleep(100000);
+		usleep(samplerate*1000);
 	}
 
 
@@ -95,8 +86,6 @@ void MPU6050 :: calibrate(){
 	calibrations.x_gyro = calibrations.x_gyro/samplesize;
 	calibrations.y_gyro = calibrations.y_gyro/samplesize;
 	calibrations.z_gyro = calibrations.z_gyro/samplesize;
-
-	//std::cout<<"X accel average:"<<calibrations.x_accel<<std::endl;
 
 }
 
@@ -112,8 +101,6 @@ void MPU6050 :: refresh(){
 		MPU6050_read (MPU6050_ACCEL_XOUT_H,  buffer, sizeof(buffer));
 
 		readings.x_accel = mergeBytes(buffer[0],buffer[1]);
-
-//		8448 400 300 959 116 Account number Time Warner Cable
 
 		readings.y_accel = mergeBytes(buffer[2],buffer[3]);
 		readings.z_accel = mergeBytes(buffer[4],buffer[5]);

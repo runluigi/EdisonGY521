@@ -1,3 +1,5 @@
+#ifndef MPU6050_H
+#define MPU6050_H
 
 	#define MPU6050_AUX_VDDIO          0x01   // R/W
     #define MPU6050_SMPLRT_DIV         0x19   // R/W
@@ -94,48 +96,112 @@
     // I2C address thus becomes 0x69.
 #define MPU6050_I2C_ADDRESS 0x68
 
+#include <iostream>
+#include <sys/timeb.h>
+
+
 const short FS_SEL = 131;
+
+struct MPU6050Reading{
+		int x_accel;
+		int y_accel;
+		int z_accel;
+
+		int temperature;
+
+		int x_gyro;
+		int y_gyro;
+		int z_gyro;
+	};
+
 
 class MPU6050{
 private:
 	int status;
-	unsigned char buffer[14];
+	char buffer[14];
 	int time_measure,last_time_measure;
-	unsigned char id;
-	struct{
-		short x_accel;
-		short y_accel;
-		short z_accel;
-		short temperature;
-		short x_gyro;
-		short y_gyro;
-		short z_gyro;
-	} readings, old_readings;
+	int id;
+	int samplerate;
+
+	int samplesize;
+
+	MPU6050Reading readings, old_readings,calibrations;
 
 	int 			getMilliCount();
 	int 			getMilliSpan(int nTimeStart);
-	short 			mergeBytes(unsigned char high,unsigned char low);
+
+	char 			mergeBytes(unsigned char high,unsigned char low);
+
 	unsigned char 	MPU6050_readRegistry(int reg);
-	void 			MPU6050_read(int start,unsigned char *buff, int size);
+	void 			MPU6050_read(int start,char* buff, int size);
     int 			MPU6050_write_reg(int reg, int data);
 
 public:
+    MPU6050();
 	int 			initialize();
+	void			calibrate();
+	void			clearbuffer();
 	void 			refresh();
+
 	short 			getXGyro();
 	short 			getYGyro();
-	unsigned char 	readAccelerationConfiguration();
-	void 			startAccelerationSelfTest();
-	void 			startGyroSelfTest();
-	void 			setInterruptEnable(unsigned char status);
-	void 			setPowerManagement1(unsigned char status);
-	void 			setPowerManagement2(unsigned char status);
+	int			 	getId();
 
+	short			getTemperature();
+	short 			getXAccel();
+	short 			getYAccel();
+	short 			getZAccel();
+
+	MPU6050Reading getCalibratedReading();
+
+	unsigned char 	readConfig() ;
 	unsigned char 	readGyroConfig();
+	unsigned char 	readAccelerationConfiguration();
+
+	void	 		setConfig(unsigned char status);
+	void 			setGyroConfig(unsigned char status);
+	void 			setAccelerationConfiguration(unsigned char status);
+
 	unsigned char 	readInterruptEnable();
 	unsigned char 	readInterruptStatus();
 	unsigned char 	readPowerManagement1();
 	unsigned char 	readPowerManagement2();
 
-};
+	void 			startAccelerationSelfTest();
+	void 			startGyroSelfTest();
 
+	void 			setInterruptEnable(unsigned char status);
+	void 			setPowerManagement1(unsigned char status);
+	void 			setPowerManagement2(unsigned char status);
+
+
+
+	int getSamplerate() const {
+		return samplerate;
+	}
+
+	void setSamplerate(int samplerate) {
+		this->samplerate = samplerate;
+	}
+
+	const MPU6050Reading& getCalibrations() const {
+		return calibrations;
+	}
+
+	const MPU6050Reading& getReadings() const {
+		return readings;
+	}
+
+	int getSamplesize() const {
+		return samplesize;
+	}
+
+	void setSamplesize(int samplesize) {
+		this->samplesize = samplesize;
+	}
+};
+std::ostream& operator<<(std::ostream& out,const MPU6050Reading& data);
+void clearMPU6050Reading(MPU6050Reading& data);
+int adjustInt(int number, int adjustment);
+
+#endif

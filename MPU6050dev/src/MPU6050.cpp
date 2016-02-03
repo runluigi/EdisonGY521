@@ -24,8 +24,8 @@ void MPU6050 :: MPU6050_read(int start, char buff[], int size){
 	 	//if(result == MRAA_ERROR_FEATURE_NOT_SUPPORTED)
 	 	//std::cout<<"feature not supported by MRAA";
 		i2c->address(MPU6050_I2C_ADDRESS);
-		i2c->write(start);
-		i2c->read(buff,size);
+		i2c->writeByte(start);
+		i2c->read((uint8_t *)buff,size);
 		i2c->~I2c();
 		//delete[] i2c;
 		return;
